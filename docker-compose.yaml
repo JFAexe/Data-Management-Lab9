@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+    postgres:
+        container_name: gamedb_postgres
+        image: postgres:15.2-alpine3.17
+        environment:
+            POSTGRES_USER: 'postgres'
+            POSTGRES_PASSWORD: '1337'
+            POSTGRES_DB: 'GameDB'
+            PGPORT: '5432'
+        volumes:
+            - ./data/db:/var/lib/postgresql/data
+            - ./sql/create_base.sql:/docker-entrypoint-initdb.d/1-base.sql
+            - ./sql/create_data.sql:/docker-entrypoint-initdb.d/2-data.sql
+        networks:
+            - gamedb_network
+        ports:
+            - '5432:5432'
+        restart: on-failure
+        healthcheck:
+            test: [ 'CMD-SHELL', 'pg_isready' ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    pgadmin:
+        container_name: gamedb_pgadmin
+        image: dpage/pgadmin4
+        environment:
+            PGADMIN_DEFAULT_EMAIL: admin@gamedb.ru
+            PGADMIN_DEFAULT_PASSWORD: admin
+        networks:
+            - gamedb_network
+        ports:
+            - '8087:80'
+        restart: on-failure
+
+    app:
+        container_name: gamedb_app
+        build:
+            dockerfile: Dockerfile
+        command: python -m streamlit run app.py
+        depends_on:
+            postgres:
+                condition: service_healthy
+        networks:
+            - gamedb_network
+        ports:
+            - '8088:8088'
+        restart: on-failure
+
+networks:
+    gamedb_network:
+        driver: bridge

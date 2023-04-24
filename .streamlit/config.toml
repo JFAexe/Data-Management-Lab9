@@ -1,0 +1,12 @@
+[server]
+port = 8088
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+primaryColor = '#227E9A'
+backgroundColor = '#121212'
+secondaryBackgroundColor = '#153942'
+textColor = '#FFFFFF'
+font = 'monospace'
